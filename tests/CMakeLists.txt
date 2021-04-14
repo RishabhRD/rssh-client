@@ -1,5 +1,9 @@
 enable_testing()
 add_executable(unit_test
+  SSHServerDatabaseTest.cc
+  ../src/RSSHServer.cc
+  ../src/SSHServer.cc
+  ../src/SSHServerDatabase.cc
   ../src/MessageType.cc
   ../src/ListenerMessage.cc
   ../src/InvalidMessageCastException.cc

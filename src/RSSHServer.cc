@@ -1,12 +1,14 @@
-#include "ListenerMessage.h"
-#include <iostream>
 #include "RSSHServer.h"
 #include "CloseMessage.h"
+#include "ListenerMessage.h"
 #include "NewMessage.h"
+#include <iostream>
+#include "SSHServer.h"
 
 RSSHServer::RSSHServer(asio::io_context &context, std::string hostname,
-                       std::string service)
-    : context(context), socket(context), hostname(hostname), service(service) {}
+                       std::string service, std::string localService)
+    : context(context), socket(context), hostname(hostname), service(service),
+      localService(localService) {}
 
 void RSSHServer::connect() {
   tcp::resolver resolver(context);
@@ -14,9 +16,7 @@ void RSSHServer::connect() {
   asio::connect(socket, endpoints);
 }
 
-void RSSHServer::scheduleRead(){
-  scheduleReadId();
-}
+void RSSHServer::scheduleRead() { scheduleReadId(); }
 
 void RSSHServer::scheduleReadId() {
   asio::async_read(socket, asio::buffer(&id, sizeof(id)),
@@ -84,20 +84,28 @@ void RSSHServer::handleReadData(std::error_code code, std::size_t readSize) {
 
 void RSSHServer::handleConenctionClose() { socket.close(); }
 
-void RSSHServer::handleMessage(const Message& msg){
-  if(msg.getType() == MessageType::CLOSE){
+void RSSHServer::handleMessage(const Message &msg) {
+  if (msg.getType() == MessageType::CLOSE) {
     CloseMessage cmsg(msg);
-    socket.close();
-  }else if(msg.getType() == MessageType::DATA){
-    // TODO: what to do with data
+    db.removeServer(msg.getId());
+  } else if (msg.getType() == MessageType::DATA) {
+    db.getServerFromId(msg.getId()).lock()->write(msg);
     scheduleReadId();
-  }else if(msg.getType() == MessageType::LISTEN){
+  } else if (msg.getType() == MessageType::LISTEN) {
     ListenerMessage cmsg(msg);
     // TODO: handle the case when this message is listened 2 times
-    std::cout<<"Port on which is being listened: "<<cmsg.getPort()<<std::endl;
+    std::cout << "Port on which is being listened: " << cmsg.getPort()
+              << std::endl;
     scheduleReadId();
-  }else{
-    // TODO: handle how to create new client.
+  } else {
+    NewMessage cmsg(msg);
+    auto ptr = SSHServer::create(context, localService, *this, cmsg.getId());
     scheduleReadId();
   }
+}
+
+void RSSHServer::write(const Message &msg) {
+  auto data = msg.serialize();
+  asio::async_write(socket, asio::buffer(data),
+                    [](auto error, auto sizeWritten) {});
 }

@@ -1,4 +1,7 @@
 add_executable(rssh-client
+  RSSHServer.cc
+  SSHServer.cc
+  SSHServerDatabase.cc
   MessageType.cc
   ListenerMessage.cc
   InvalidMessageCastException.cc
