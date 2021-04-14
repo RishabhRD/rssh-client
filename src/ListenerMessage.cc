@@ -44,8 +44,8 @@ ListenerMessage::ListenerMessage(const Message &msg)
   }
   if (msg.getLength() != sizeof(std::uint32_t)) {
     throw InvalidMessageCastException(
-        "Invalid casting of message with length "
-        "!= sizeof(std::uint32_t) to ListenerMessage");
+        "Invalid casting of message with length (" + std::to_string(msg.getLength()) +
+        ") != sizeof(std::uint32_t) to ListenerMessage");
   }
   id = msg.getId();
   if (id > 0) {

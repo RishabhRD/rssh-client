@@ -16,7 +16,7 @@ void SSHServerDatabase::registerServer(std::uint32_t id,
 void SSHServerDatabase::removeServer(std::uint32_t id) {
   if (mp.find(id) == mp.end()) {
     throw std::invalid_argument(std::to_string(id) +
-                                std::string(" is not registered."));
+                                std::string(" is not registered for remove."));
   }
   mp.erase(id);
 }
@@ -24,7 +24,7 @@ void SSHServerDatabase::removeServer(std::uint32_t id) {
 std::weak_ptr<SSHServer> SSHServerDatabase::getServerFromId(std::uint32_t id) const {
   if (mp.find(id) == mp.end()) {
     throw std::invalid_argument(std::to_string(id) +
-                                std::string(" is not registered."));
+                                std::string(" is not registered for get."));
   }
   return mp.find(id)->second;
 }

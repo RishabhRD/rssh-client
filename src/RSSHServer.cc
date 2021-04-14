@@ -1,3 +1,4 @@
+#include "DataMessage.h"
 #include "RSSHServer.h"
 #include "CloseMessage.h"
 #include "ListenerMessage.h"
@@ -8,7 +9,7 @@
 RSSHServer::RSSHServer(asio::io_context &context, std::string hostname,
                        std::string service, std::string localService)
     : context(context), socket(context), hostname(hostname), service(service),
-      localService(localService) {}
+      localService(localService), readBuffer(1024) {}
 
 void RSSHServer::connect() {
   tcp::resolver resolver(context);
@@ -49,7 +50,7 @@ void RSSHServer::handleReadType(std::error_code code, std::size_t readSize) {
 }
 
 void RSSHServer::scheduleReadLength() {
-  asio::async_read(socket, asio::buffer(&type, sizeof(type)),
+  asio::async_read(socket, asio::buffer(&length, sizeof(length)),
                    [this](auto errorCode, auto readSize) {
                      handleReadLength(errorCode, readSize);
                    });
@@ -89,6 +90,7 @@ void RSSHServer::handleMessage(const Message &msg) {
     CloseMessage cmsg(msg);
     db.removeServer(msg.getId());
   } else if (msg.getType() == MessageType::DATA) {
+    DataMessage cmsg(msg);
     db.getServerFromId(msg.getId()).lock()->write(msg);
     scheduleReadId();
   } else if (msg.getType() == MessageType::LISTEN) {
@@ -100,6 +102,7 @@ void RSSHServer::handleMessage(const Message &msg) {
   } else {
     NewMessage cmsg(msg);
     auto ptr = SSHServer::create(context, localService, *this, cmsg.getId());
+    db.registerServer(cmsg.getId(), ptr);
     scheduleReadId();
   }
 }
