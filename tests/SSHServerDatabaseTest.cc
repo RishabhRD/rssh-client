@@ -8,7 +8,7 @@
 tc("After registering server getServerFromId would give the registered server"){
   SSHServerDatabase database;
   asio::io_context context;
-  RSSHServer rsshServer(context, "127.0.0.1", "8080", "443");
+  RSSHServer::ptr rsshServer = RSSHServer::create(context, "127.0.0.1", "8080", "443");
   SSHServer::ptr server = SSHServer::create(context, "443", rsshServer, 1);
   database.registerServer(1, server);
   req(database.getServerFromId(1).lock() == server);
@@ -17,7 +17,7 @@ tc("After registering server getServerFromId would give the registered server"){
 tc("After removing registered server, asking for it would throw exception"){
   SSHServerDatabase database;
   asio::io_context context;
-  RSSHServer rsshServer(context, "127.0.0.1", "8080", "443");
+  RSSHServer::ptr rsshServer = RSSHServer::create(context, "127.0.0.1", "8080", "443");
   SSHServer::ptr server = SSHServer::create(context, "443", rsshServer, 1);
   database.registerServer(1, server);
   database.removeServer(1);
@@ -27,7 +27,7 @@ tc("After removing registered server, asking for it would throw exception"){
 tc("Once registered server with a 1, IDBeingUsed should return true for that"){
   SSHServerDatabase database;
   asio::io_context context;
-  RSSHServer rsshServer(context, "127.0.0.1", "8080", "443");
+  RSSHServer::ptr rsshServer = RSSHServer::create(context, "127.0.0.1", "8080", "443");
   SSHServer::ptr server = SSHServer::create(context, "443", rsshServer, 1);
   database.registerServer(1, server);
   req(database.isIDBeingUsed(1) == true);
@@ -36,7 +36,7 @@ tc("Once registered server with a 1, IDBeingUsed should return true for that"){
 tc("Server registered with a 1 and after remvoe should return false"){
   SSHServerDatabase database;
   asio::io_context context;
-  RSSHServer rsshServer(context, "127.0.0.1", "8080", "443");
+  RSSHServer::ptr rsshServer = RSSHServer::create(context, "127.0.0.1", "8080", "443");
   SSHServer::ptr server = SSHServer::create(context, "443", rsshServer, 1);
   database.registerServer(1, server);
   database.removeServer(1);
@@ -46,7 +46,7 @@ tc("Server registered with a 1 and after remvoe should return false"){
 tc("Registering a server with preRegistered1 should throw exception"){
   SSHServerDatabase database;
   asio::io_context context;
-  RSSHServer rsshServer(context, "127.0.0.1", "8080", "443");
+  RSSHServer::ptr rsshServer = RSSHServer::create(context, "127.0.0.1", "8080", "443");
   SSHServer::ptr server = SSHServer::create(context, "443", rsshServer, 1);
   database.registerServer(1, server);
   reqThrows(database.registerServer(1, server));

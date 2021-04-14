@@ -1,10 +1,10 @@
-#include "DataMessage.h"
 #include "RSSHServer.h"
 #include "CloseMessage.h"
+#include "DataMessage.h"
 #include "ListenerMessage.h"
 #include "NewMessage.h"
-#include <iostream>
 #include "SSHServer.h"
+#include <iostream>
 
 RSSHServer::RSSHServer(asio::io_context &context, std::string hostname,
                        std::string service, std::string localService)
@@ -19,26 +19,12 @@ void RSSHServer::connect() {
 
 void RSSHServer::scheduleRead() { scheduleReadId(); }
 
-void RSSHServer::scheduleReadId() {
-  asio::async_read(socket, asio::buffer(&id, sizeof(id)),
-                   [this](auto errorCode, auto readSize) {
-                     handleReadId(errorCode, readSize);
-                   });
-}
-
 void RSSHServer::handleReadId(std::error_code code, std::size_t readSize) {
   if (code == asio::error::eof) {
     handleConenctionClose();
     return;
   }
   scheduleReadType();
-}
-
-void RSSHServer::scheduleReadType() {
-  asio::async_read(socket, asio::buffer(&type, sizeof(type)),
-                   [this](auto errorCode, auto readSize) {
-                     handleReadType(errorCode, readSize);
-                   });
 }
 
 void RSSHServer::handleReadType(std::error_code code, std::size_t readSize) {
@@ -49,13 +35,6 @@ void RSSHServer::handleReadType(std::error_code code, std::size_t readSize) {
   scheduleReadLength();
 }
 
-void RSSHServer::scheduleReadLength() {
-  asio::async_read(socket, asio::buffer(&length, sizeof(length)),
-                   [this](auto errorCode, auto readSize) {
-                     handleReadLength(errorCode, readSize);
-                   });
-}
-
 void RSSHServer::handleReadLength(std::error_code code, std::size_t readSize) {
   if (length > 0) {
     scheduleReadData();
@@ -64,12 +43,6 @@ void RSSHServer::handleReadLength(std::error_code code, std::size_t readSize) {
     msg.setId(id);
     handleMessage(msg);
   }
-}
-
-void RSSHServer::scheduleReadData() {
-  asio::async_read(
-      socket, asio::buffer(readBuffer, length),
-      [this](auto error, auto size) { handleReadData(error, size); });
 }
 
 void RSSHServer::handleReadData(std::error_code code, std::size_t readSize) {
@@ -101,7 +74,8 @@ void RSSHServer::handleMessage(const Message &msg) {
     scheduleReadId();
   } else {
     NewMessage cmsg(msg);
-    auto ptr = SSHServer::create(context, localService, *this, cmsg.getId());
+    auto ptr = SSHServer::create(context, localService, shared_from_this(),
+                                 cmsg.getId());
     db.registerServer(cmsg.getId(), ptr);
     scheduleReadId();
   }
@@ -111,4 +85,35 @@ void RSSHServer::write(const Message &msg) {
   auto data = msg.serialize();
   asio::async_write(socket, asio::buffer(data),
                     [](auto error, auto sizeWritten) {});
+}
+
+void RSSHServer::scheduleReadId() {
+  auto handleReadFp = std::bind(&RSSHServer::handleReadId, shared_from_this(),
+                                std::placeholders::_1, std::placeholders::_2);
+  asio::async_read(socket, asio::buffer(&id, sizeof(id)), handleReadFp);
+}
+
+void RSSHServer::scheduleReadType() {
+  auto handleReadFp = std::bind(&RSSHServer::handleReadType, shared_from_this(),
+                                std::placeholders::_1, std::placeholders::_2);
+  asio::async_read(socket, asio::buffer(&type, sizeof(type)), handleReadFp);
+}
+
+void RSSHServer::scheduleReadLength() {
+  auto handleReadFp =
+      std::bind(&RSSHServer::handleReadLength, shared_from_this(),
+                std::placeholders::_1, std::placeholders::_2);
+  asio::async_read(socket, asio::buffer(&length, sizeof(length)), handleReadFp);
+}
+
+void RSSHServer::scheduleReadData() {
+  auto handleReadFp = std::bind(&RSSHServer::handleReadData, shared_from_this(),
+                                std::placeholders::_1, std::placeholders::_2);
+  asio::async_read(socket, asio::buffer(readBuffer, length), handleReadFp);
+}
+
+RSSHServer::ptr RSSHServer::create(asio::io_context &context, std::string hostname,
+                                   std::string service,
+                                   std::string localService) {
+  return ptr(new RSSHServer(context, hostname, service, localService));
 }
