@@ -2,6 +2,7 @@
 #include "Message.h"
 #include "RSSHServer.h"
 #include <functional>
+#include <iostream>
 
 SSHServer::SSHServer(asio::io_context &context, std::string serviceName,
                      RSSHServer::ptr server, std::uint32_t id)
@@ -38,10 +39,11 @@ void SSHServer::handleRead(std::error_code error, std::size_t readSize) {
   scheduleRead();
 }
 
-void SSHServer::handleConenctionClose() { socket.close(); }
+void SSHServer::handleConenctionClose() { 
+  /* socket.close(); */ 
+}
 
 void SSHServer::write(const Message &msg) {
-  auto data = msg.serialize();
-  asio::async_write(socket, asio::buffer(data),
-                    [](auto error, auto sizeWritten) {});
+  auto writeData = msg.getData();
+  asio::write(socket, asio::buffer(writeData));
 }

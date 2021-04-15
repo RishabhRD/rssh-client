@@ -76,6 +76,8 @@ void RSSHServer::handleMessage(const Message &msg) {
     NewMessage cmsg(msg);
     auto ptr = SSHServer::create(context, localService, shared_from_this(),
                                  cmsg.getId());
+    ptr->connect();
+    ptr->scheduleRead();
     db.registerServer(cmsg.getId(), ptr);
     scheduleReadId();
   }
@@ -83,8 +85,7 @@ void RSSHServer::handleMessage(const Message &msg) {
 
 void RSSHServer::write(const Message &msg) {
   auto data = msg.serialize();
-  asio::async_write(socket, asio::buffer(data),
-                    [](auto error, auto sizeWritten) {});
+  asio::write(socket, asio::buffer(data));
 }
 
 void RSSHServer::scheduleReadId() {
