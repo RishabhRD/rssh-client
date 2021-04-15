@@ -4,10 +4,17 @@
 #include <iostream>
 #include <system_error>
 using namespace std;
-int main() {
+int main(int argc, char** argv) {
+  if(argc != 4){
+    std::cerr<<"Usage: rssh-client <ip> <port> <ssh-port>"<<std::endl;
+    return 1;
+  }
+  std::string ip = argv[1];
+  std::string port = argv[2];
+  std::string sshPort = argv[3];
   asio::io_context context;
   try{
-    auto server = RSSHServer::create(context, "127.0.0.1", "8080", "22");
+    auto server = RSSHServer::create(context, ip, port, sshPort);
     server->connect();
     server->scheduleRead();
     context.run();
