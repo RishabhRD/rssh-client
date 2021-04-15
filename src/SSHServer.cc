@@ -40,7 +40,7 @@ void SSHServer::handleRead(std::error_code error, std::size_t readSize) {
 }
 
 void SSHServer::handleConenctionClose() { 
-  /* socket.close(); */ 
+  std::cout<<id<<std::endl;
 }
 
 void SSHServer::write(const Message &msg) {

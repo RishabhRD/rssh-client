@@ -56,7 +56,7 @@ void RSSHServer::handleReadData(std::error_code code, std::size_t readSize) {
   handleMessage(msg);
 }
 
-void RSSHServer::handleConenctionClose() { socket.close(); }
+void RSSHServer::handleConenctionClose() {}
 
 void RSSHServer::handleMessage(const Message &msg) {
   if (msg.getType() == MessageType::CLOSE) {
