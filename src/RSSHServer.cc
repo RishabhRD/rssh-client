@@ -61,7 +61,11 @@ void RSSHServer::handleConenctionClose() {}
 void RSSHServer::handleMessage(const Message &msg) {
   if (msg.getType() == MessageType::CLOSE) {
     CloseMessage cmsg(msg);
+    // TODO: handle when client disconnects.
+    /* auto server = db.getServerFromId(cmsg.getId()).lock(); */
+    /* server.close(); */
     db.removeServer(msg.getId());
+    scheduleReadId();
   } else if (msg.getType() == MessageType::DATA) {
     DataMessage cmsg(msg);
     db.getServerFromId(msg.getId()).lock()->write(msg);
@@ -113,8 +117,8 @@ void RSSHServer::scheduleReadData() {
   asio::async_read(socket, asio::buffer(readBuffer, length), handleReadFp);
 }
 
-RSSHServer::ptr RSSHServer::create(asio::io_context &context, std::string hostname,
-                                   std::string service,
+RSSHServer::ptr RSSHServer::create(asio::io_context &context,
+                                   std::string hostname, std::string service,
                                    std::string localService) {
   return ptr(new RSSHServer(context, hostname, service, localService));
 }
