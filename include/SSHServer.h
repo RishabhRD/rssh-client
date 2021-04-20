@@ -18,6 +18,7 @@ public:
   void connect();
   void scheduleRead();
   void write(const Message &msg);
+  void close();
 
 private:
   SSHServer(asio::io_context &context, std::string serviceName,

@@ -1,4 +1,5 @@
 #include "SSHServerDatabase.h"
+#include "SSHServer.h"
 #include <stdexcept>
 
 SSHServerDatabase::SSHServerDatabase(){};
@@ -31,4 +32,12 @@ std::weak_ptr<SSHServer> SSHServerDatabase::getServerFromId(std::uint32_t id) co
 
 bool SSHServerDatabase::isIDBeingUsed(std::uint32_t id) const noexcept {
   return mp.find(id) != mp.end();
+}
+
+void SSHServerDatabase::closeAll(){
+  for(auto& keyValuePair : mp){
+    auto server = keyValuePair.second.lock();
+    server->close();
+  }
+  mp.clear();
 }

@@ -56,14 +56,15 @@ void RSSHServer::handleReadData(std::error_code code, std::size_t readSize) {
   handleMessage(msg);
 }
 
-void RSSHServer::handleConenctionClose() {}
+void RSSHServer::handleConenctionClose() {
+  db.closeAll();
+}
 
 void RSSHServer::handleMessage(const Message &msg) {
   if (msg.getType() == MessageType::CLOSE) {
     CloseMessage cmsg(msg);
-    // TODO: handle when client disconnects.
-    /* auto server = db.getServerFromId(cmsg.getId()).lock(); */
-    /* server.close(); */
+    auto server = db.getServerFromId(cmsg.getId()).lock();
+    server->close();
     db.removeServer(msg.getId());
     scheduleReadId();
   } else if (msg.getType() == MessageType::DATA) {

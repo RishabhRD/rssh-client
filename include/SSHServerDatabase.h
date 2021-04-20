@@ -11,4 +11,5 @@ class SSHServerDatabase{
     void removeServer(std::uint32_t id);
     std::weak_ptr<SSHServer> getServerFromId(std::uint32_t id) const;
     bool isIDBeingUsed(std::uint32_t id) const noexcept;
+    void closeAll();
 };

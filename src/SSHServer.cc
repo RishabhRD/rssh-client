@@ -1,3 +1,4 @@
+#include "CloseMessage.h"
 #include "SSHServer.h"
 #include "Message.h"
 #include "RSSHServer.h"
@@ -40,10 +41,16 @@ void SSHServer::handleRead(std::error_code error, std::size_t readSize) {
 }
 
 void SSHServer::handleConenctionClose() { 
-  std::cout<<id<<std::endl;
+  CloseMessage cmsg;
+  cmsg.setId(this->id);
+  rsshServer->write(cmsg);
 }
 
 void SSHServer::write(const Message &msg) {
   auto writeData = msg.getData();
   asio::write(socket, asio::buffer(writeData));
+}
+
+void SSHServer::close(){
+  socket.close();
 }
