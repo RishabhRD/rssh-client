@@ -42,7 +42,8 @@ void SSHServer::handleRead(std::error_code error, std::size_t readSize) {
 
 void SSHServer::handleConenctionClose() { 
   CloseMessage cmsg;
-  cmsg.setId(this->id);
+  cmsg.setId(id);
+  rsshServer->removeServer(id);
   rsshServer->write(cmsg);
 }
 

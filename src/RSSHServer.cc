@@ -123,3 +123,7 @@ RSSHServer::ptr RSSHServer::create(asio::io_context &context,
                                    std::string localService) {
   return ptr(new RSSHServer(context, hostname, service, localService));
 }
+
+void RSSHServer::removeServer(std::uint32_t id){
+  db.removeServer(id);
+}

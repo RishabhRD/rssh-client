@@ -26,6 +26,7 @@ public:
   void connect();
   void scheduleRead();
   void write(const Message &msg);
+  void removeServer(std::uint32_t id);
 
 private:
   RSSHServer(asio::io_context &, std::string hostname, std::string service,
